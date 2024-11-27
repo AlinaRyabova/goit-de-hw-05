@@ -43,51 +43,36 @@ def process_message(message):
     temperature = data["temperature"]
     humidity = data["humidity"]
 
-    # Виведення отриманих даних з кольоровим виводом
-    print(Fore.GREEN + f"Received data from sensor {sensor_id}:")
-    print(Fore.YELLOW + f"Temperature: {temperature}°C, Humidity: {humidity}%")
-    print("-" * 50)
-
-    # Генерація сповіщень для перевищення температури
+    # Виведення отриманих даних (лімітована кількість інформації)
+    print(Fore.YELLOW + f"Sensor: {sensor_id}")
+    print(Fore.GREEN + f"Temp: {temperature}°C | Humidity: {humidity}%")
+    
+    # Перевірка порогових значень для температури
     if temperature > 40:
         alert_message = {
             "sensor_id": sensor_id,
             "temperature": temperature,
             "timestamp": data["timestamp"],
-            "message": "Temperature exceeds threshold!",
+            "message": "High temperature alert!",
         }
-        print(Fore.RED + f"ALERT: Temperature exceeds threshold! Sending alert...")
-        # Відправка сповіщення до топіку temperature_alerts
-        producer.produce(
-            "temperature_alerts", key=sensor_id, value=json.dumps(alert_message)
-        )
-        print(Fore.MAGENTA + f"Data sent to topic 'temperature_alerts'")
+        print(Fore.RED + "ALERT: High Temperature!")
+        producer.produce("temperature_alerts", key=sensor_id, value=json.dumps(alert_message))
 
-    # Генерація сповіщень для вологості
+    # Перевірка порогових значень для вологості
     if humidity > 80 or humidity < 20:
         alert_message = {
             "sensor_id": sensor_id,
             "humidity": humidity,
             "timestamp": data["timestamp"],
-            "message": "Humidity exceeds threshold!",
+            "message": "Humidity alert!",
         }
-        print(Fore.CYAN + f"ALERT: Humidity exceeds threshold! Sending alert...")
-        # Відправка сповіщення до топіку humidity_alerts
-        producer.produce(
-            "humidity_alerts", key=sensor_id, value=json.dumps(alert_message)
-        )
-        print(Fore.MAGENTA + f"Data sent to topic 'humidity_alerts'")
+        print(Fore.CYAN + "ALERT: Humidity out of range!")
+        producer.produce("humidity_alerts", key=sensor_id, value=json.dumps(alert_message))
 
     # Важливо! Для гарантії відправки повідомлень у Kafka
     producer.flush()
 
-    # Додатково для результату фільтрації і запису в топіки:
-    print(
-        Fore.WHITE
-        + "Filtered data has been successfully sent to the appropriate topics."
-    )
-    print("-" * 50)
-
+    print("-" * 30)  # Розділяє повідомлення для кожного сенсора
 
 # Обробка повідомлень з топіку
 try:
